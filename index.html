@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard สรุปการนำเข้าข้อมูล Tool รพ.พิบูลมังสาหาร</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Sarabun',sans-serif; background:#0f172a; color:#e2e8f0; min-height:100vh; }
+  .header { background:linear-gradient(135deg,#1e293b 0%,#334155 100%); padding:28px 40px; border-bottom:3px solid #3b82f6; }
+  .header h1 { font-size:24px; font-weight:700; color:#fff; }
+  .header p { color:#94a3b8; font-size:14px; margin-top:4px; }
+  .container { max-width:1400px; margin:0 auto; padding:24px; }
+
+  /* KPI Cards */
+  .kpi-row { display:grid; grid-template-columns:repeat(5,1fr); gap:16px; margin-bottom:28px; }
+  .kpi { background:#1e293b; border-radius:12px; padding:20px; border-left:4px solid #3b82f6; }
+  .kpi.green { border-left-color:#22c55e; }
+  .kpi.yellow { border-left-color:#eab308; }
+  .kpi.orange { border-left-color:#f97316; }
+  .kpi.red { border-left-color:#ef4444; }
+  .kpi.blue { border-left-color:#3b82f6; }
+  .kpi-label { font-size:13px; color:#94a3b8; margin-bottom:6px; }
+  .kpi-value { font-size:32px; font-weight:700; }
+  .kpi-sub { font-size:12px; color:#64748b; margin-top:4px; }
+  .kpi.green .kpi-value { color:#22c55e; }
+  .kpi.yellow .kpi-value { color:#eab308; }
+  .kpi.orange .kpi-value { color:#f97316; }
+  .kpi.red .kpi-value { color:#ef4444; }
+  .kpi.blue .kpi-value { color:#3b82f6; }
+
+  /* Progress bar */
+  .progress-section { background:#1e293b; border-radius:12px; padding:24px; margin-bottom:28px; }
+  .progress-section h2 { font-size:18px; margin-bottom:16px; color:#fff; }
+  .progress-bar-bg { background:#334155; border-radius:10px; height:32px; overflow:hidden; display:flex; }
+  .progress-fill { height:100%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:#fff; transition:width 0.5s; }
+  .pf-done { background:#22c55e; }
+  .pf-doing { background:#f97316; }
+  .pf-wait { background:#64748b; }
+  .progress-legend { display:flex; gap:24px; margin-top:12px; font-size:13px; }
+  .legend-dot { width:12px; height:12px; border-radius:3px; display:inline-block; margin-right:6px; vertical-align:middle; }
+
+  /* Phase sections */
+  .phases { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; margin-bottom:28px; }
+  .phase-card { background:#1e293b; border-radius:12px; padding:20px; }
+  .phase-card h3 { font-size:16px; color:#fff; margin-bottom:4px; }
+  .phase-card .phase-sub { font-size:12px; color:#64748b; margin-bottom:14px; }
+  .phase-card .donut-wrap { text-align:center; margin-bottom:14px; }
+  .phase-stats { display:flex; gap:8px; flex-wrap:wrap; }
+  .phase-stat { background:#0f172a; border-radius:8px; padding:8px 12px; font-size:12px; flex:1; min-width:80px; text-align:center; }
+  .phase-stat .num { font-size:20px; font-weight:700; display:block; }
+
+  /* Table */
+  .table-section { background:#1e293b; border-radius:12px; padding:24px; margin-bottom:28px; }
+  .table-section h2 { font-size:18px; margin-bottom:16px; color:#fff; }
+  .tab-row { display:flex; gap:8px; margin-bottom:16px; }
+  .tab-btn { background:#334155; border:none; color:#94a3b8; padding:8px 18px; border-radius:8px; cursor:pointer; font-family:inherit; font-size:13px; }
+  .tab-btn.active { background:#3b82f6; color:#fff; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { background:#334155; color:#94a3b8; text-align:left; padding:10px 12px; font-weight:600; }
+  td { padding:10px 12px; border-bottom:1px solid #334155; }
+  tr:hover td { background:#1a2744; }
+  .badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; white-space:nowrap; }
+  .badge-done { background:#16432a; color:#4ade80; }
+  .badge-doing { background:#422006; color:#fb923c; }
+  .badge-wait { background:#1e293b; color:#94a3b8; border:1px solid #475569; }
+  .badge-na { background:#1e293b; color:#64748b; }
+
+  /* Year heatmap */
+  .year-section { background:#1e293b; border-radius:12px; padding:24px; margin-bottom:28px; }
+  .year-section h2 { font-size:18px; margin-bottom:16px; color:#fff; }
+  .heatmap { display:grid; grid-template-columns:200px repeat(6,1fr); gap:2px; font-size:12px; }
+  .hm-header { background:#334155; padding:8px; text-align:center; font-weight:600; color:#94a3b8; border-radius:4px; }
+  .hm-label { background:#0f172a; padding:8px; border-radius:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .hm-cell { padding:8px; text-align:center; border-radius:4px; font-weight:600; }
+  .hm-done { background:#16432a; color:#4ade80; }
+  .hm-doing { background:#422006; color:#fb923c; }
+  .hm-wait { background:#27272a; color:#71717a; }
+  .hm-zero { background:#1c1917; color:#57534e; }
+
+  /* Manage section */
+  .manage-section { background:#1e293b; border-radius:12px; padding:24px; margin-bottom:28px; }
+  .manage-section h2 { font-size:18px; margin-bottom:16px; color:#fff; }
+
+  /* Google Sheet Connection */
+  .gs-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+  .gs-header h2 { margin-bottom:0; }
+  .gs-status { display:flex; align-items:center; gap:8px; font-size:13px; }
+  .gs-dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+  .gs-dot.online { background:#22c55e; box-shadow:0 0 6px #22c55e; }
+  .gs-dot.offline { background:#ef4444; }
+  .gs-dot.loading { background:#eab308; animation:pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .btn-refresh { background:#334155; border:1px solid #475569; color:#e2e8f0; padding:6px 16px; border-radius:8px; cursor:pointer; font-family:inherit; font-size:13px; display:flex; align-items:center; gap:6px; transition:all 0.2s; }
+  .btn-refresh:hover { background:#3b82f6; border-color:#3b82f6; }
+  .btn-refresh:disabled { opacity:0.5; cursor:not-allowed; }
+  .btn-refresh .spinner { display:inline-block; width:14px; height:14px; border:2px solid #64748b; border-top-color:#e2e8f0; border-radius:50%; animation:spin 0.8s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .gs-info { background:#0f172a; border-radius:8px; padding:12px 16px; margin-bottom:16px; font-size:12px; color:#94a3b8; display:flex; align-items:center; gap:8px; }
+  .gs-info a { color:#3b82f6; text-decoration:none; word-break:break-all; }
+  .gs-info a:hover { text-decoration:underline; }
+
+  /* Detail column in manage table */
+  .detail-cell { font-size:12px; color:#94a3b8; max-width:250px; }
+  .detail-cell strong { color:#e2e8f0; font-weight:600; }
+  .cmd-code { background:#0f172a; padding:2px 6px; border-radius:4px; font-family:monospace; font-size:11px; color:#7dd3fc; display:inline-block; margin-top:2px; max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cmd-code:hover { white-space:normal; word-break:break-all; }
+
+  svg text { font-family:'Sarabun',sans-serif; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Dashboard สรุปการนำเข้าข้อมูล Tool</h1>
+  <p>โรงพยาบาลพิบูลมังสาหาร &mdash; อัปเดตล่าสุด: มีนาคม 2569</p>
+</div>
+
+<div class="container">
+
+<!-- KPI Cards -->
+<div class="kpi-row">
+  <div class="kpi green">
+    <div class="kpi-label">ดำเนินการแล้ว</div>
+    <div class="kpi-value" id="kpi-done">-</div>
+    <div class="kpi-sub">รายการ</div>
+  </div>
+  <div class="kpi orange">
+    <div class="kpi-label">กำลังดำเนินการ</div>
+    <div class="kpi-value" id="kpi-doing">-</div>
+    <div class="kpi-sub">รายการ</div>
+  </div>
+  <div class="kpi red">
+    <div class="kpi-label">รอดำเนินการ</div>
+    <div class="kpi-value" id="kpi-wait">-</div>
+    <div class="kpi-sub">รายการ</div>
+  </div>
+  <div class="kpi blue">
+    <div class="kpi-label">รายการทั้งหมด</div>
+    <div class="kpi-value" id="kpi-total">-</div>
+    <div class="kpi-sub">3 เฟส</div>
+  </div>
+  <div class="kpi green">
+    <div class="kpi-label">% ความสำเร็จรวม</div>
+    <div class="kpi-value" id="kpi-pct">-</div>
+    <div class="kpi-sub">เป้าหมาย 100%</div>
+  </div>
+</div>
+
+<!-- Overall Progress Bar -->
+<div class="progress-section">
+  <h2>ความคืบหน้ารวมทุกเฟส</h2>
+  <div class="progress-bar-bg" id="progress-bar"></div>
+  <div class="progress-legend">
+    <span><span class="legend-dot" style="background:#22c55e"></span>ดำเนินการแล้ว</span>
+    <span><span class="legend-dot" style="background:#f97316"></span>กำลังดำเนินการ</span>
+    <span><span class="legend-dot" style="background:#64748b"></span>รอดำเนินการ</span>
+  </div>
+</div>
+
+<!-- Phase Cards with Donut Charts -->
+<div class="phases" id="phase-cards"></div>
+
+<!-- Detailed Table -->
+<div class="table-section">
+  <h2>รายละเอียดทุกตาราง</h2>
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="showTab('all')">ทั้งหมด</button>
+    <button class="tab-btn" onclick="showTab('phase1')">เฟส 1 - ข้อมูลพื้นฐาน</button>
+    <button class="tab-btn" onclick="showTab('phase2')">เฟส 2 - ข้อมูลผู้ป่วย</button>
+    <button class="tab-btn" onclick="showTab('phase3')">เฟส 3 - ข้อมูลการรักษา</button>
+  </div>
+  <table>
+    <thead><tr><th>#</th><th>ตาราง</th><th>เฟส</th><th>สถานะ</th></tr></thead>
+    <tbody id="detail-tbody"></tbody>
+  </table>
+</div>
+
+<!-- Year-by-Year Heatmap (Phase 3) -->
+<div class="year-section">
+  <h2>สถานะการดึงข้อมูลรายปี (เฟส 3)</h2>
+  <div class="heatmap" id="heatmap"></div>
+</div>
+
+<!-- Manage Tools - Google Sheet Integration -->
+<div class="manage-section">
+  <div class="gs-header">
+    <h2>Manage Tools (การแก้ไขข้อมูลหลังนำเข้า)</h2>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="gs-status">
+        <span class="gs-dot" id="gs-dot"></span>
+        <span id="gs-status-text">กำลังโหลด...</span>
+      </div>
+      <button class="btn-refresh" id="btn-refresh" onclick="fetchGoogleSheet()">
+        <span id="refresh-icon">↻</span> รีเฟรชข้อมูล
+      </button>
+    </div>
+  </div>
+  <div class="gs-info">
+    <span>📊</span>
+    <span>แหล่งข้อมูล: <a href="https://docs.google.com/spreadsheets/d/1zO0YZntMAoJc6V9MXwh9Se32ituqkruy/edit?usp=sharing" target="_blank">Google Sheet - สรุปการแก้ไขข้อมูล</a></span>
+    <span style="margin-left:auto;" id="gs-last-update">อัปเดตล่าสุด: -</span>
+  </div>
+  <table>
+    <thead><tr><th style="width:30px">#</th><th>ตาราง</th><th>ฟิลด์</th><th>ปัญหา / การแก้ไข</th><th>ตัดเดือน 3</th><th>ตัดเดือน 6</th><th>ตัดเดือน 7</th></tr></thead>
+    <tbody id="manage-tbody"></tbody>
+  </table>
+</div>
+
+</div>
+
+<script>
+const data = {
+  phase1: [
+    {table:"hospital_department",status:"done"},
+    {table:"kskdepartment",status:"done"},
+    {table:"spclty",status:"done"},
+    {table:"emp",status:"done"},
+    {table:"doctor(psn)",status:"done"},
+    {table:"doctor(dct)",status:"done"},
+    {table:"doctor(opstaff)",status:"done"},
+    {table:"doctor(dentist)",status:"done"},
+    {table:"doctor(xrsytaff)",status:"done"},
+    {table:"doctor(rcstaff)",status:"done"},
+    {table:"doctor(phrmcst)",status:"done"},
+    {table:"doctor(fooduser)",status:"done"},
+    {table:"doctor(lmlabman)",status:"done"},
+    {table:"opduser",status:"done"},
+    {table:"officer",status:"done"},
+    {table:"ward",status:"done"},
+    {table:"clinic",status:"done"},
+    {table:"pttype",status:"done"},
+    {table:"drugusage",status:"done"},
+    {table:"drughint",status:"done"},
+    {table:"drugitems",status:"done"},
+    {table:"drugitems(update)",status:"done"},
+    {table:"nondrugitems(meditems)",status:"done"},
+    {table:"nondrugitems(เวชภัณฑ์)",status:"done"},
+    {table:"nondrugitems(อวัยวะเทียม)",status:"done"},
+    {table:"nondrugitems(prcd)",status:"done"},
+    {table:"nondrugitems(lab)",status:"done"},
+    {table:"nondrugitems(xray)",status:"done"},
+    {table:"nondrugitems(เครื่องมือแพทย์)",status:"done"},
+    {table:"nondrugitems(cdt2)",status:"done"},
+    {table:"lab_items_group",status:"wait"},
+    {table:"lab_items",status:"done"},
+    {table:"lab_items_sub_group",status:"done"},
+    {table:"xray_items",status:"done"},
+    {table:"dttm",status:"wait"},
+    {table:"physic_items",status:"done"},
+    {table:"er_oper_code",status:"done"},
+    {table:"income",status:"done"},
+  ],
+  phase2: [
+    {table:"patient",status:"done"},
+    {table:"patient_relation_address",status:"done"},
+    {table:"death",status:"done"},
+    {table:"ptcardno",status:"done"},
+    {table:"patient_pttype",status:"done"},
+    {table:"opd_allergy",status:"done"},
+  ],
+  phase3: [
+    {table:"ovst",status:"done"},
+    {table:"visit_pttype",status:"done"},
+    {table:"ovstdiag",status:"done"},
+    {table:"opdscreen",status:"done"},
+    {table:"opdscreen_cc_list",status:"done"},
+    {table:"opdscreen_cc_list(ทันตกรรม)",status:"done"},
+    {table:"oapp",status:"done"},
+    {table:"ipt",status:"done"},
+    {table:"iptdiag",status:"done"},
+    {table:"ipt_pttype",status:"done"},
+    {table:"ipt_order_no(RX)",status:"wait"},
+    {table:"ipt_order_no(LAB)",status:"wait"},
+    {table:"ipt_order_no(Xray)",status:"wait"},
+    {table:"ipt_order_no(OperIPD)",status:"wait"},
+    {table:"opitemrece(RX)",status:"done"},
+    {table:"opitemrece(RX2)",status:"done"},
+    {table:"opitemrece(LAB)",status:"done"},
+    {table:"opitemrece(Xray)",status:"done"},
+    {table:"opitemrece(OperIPD)",status:"wait"},
+    {table:"opitemrece(เวชภัณฑ์มิใช่ยา)",status:"done"},
+    {table:"opitemrece(ค่าหัตถการ)",status:"done"},
+    {table:"opitemrece(ทันตกรรม)",status:"done"},
+    {table:"opitemrece(ค่า50บาท)",status:"done"},
+    {table:"lab_head",status:"done"},
+    {table:"lab_order",status:"done"},
+    {table:"lab_order_service",status:"wait"},
+    {table:"xray_head",status:"done"},
+    {table:"xray_report",status:"done"},
+    {table:"patient_history_hpi",status:"done"},
+    {table:"opdscreen_doctor_pe",status:"done"},
+    {table:"rcpt_print",status:"wait"},
+    {table:"clinicmember",status:"wait"},
+  ]
+};
+
+const yearData = [
+  {table:"ovst",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
+  {table:"visit_pttype",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","0","0"]},
+  {table:"ovstdiag",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
+  {table:"opdscreen",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
+  {table:"opdscreen_cc_list",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
+  {table:"oapp",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","รอดึง","รอดึง","รอดึง"]},
+  {table:"ipt",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
+  {table:"iptdiag",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
+  {table:"ipt_pttype",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
+  {table:"ipt_order_no(RX)",y:["รอดึง","รอดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
+  {table:"ipt_order_no(LAB)",y:["รอดึง","รอดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
+  {table:"ipt_order_no(Xray)",y:["รอดึง","รอดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
+  {table:"ipt_order_no(OperIPD)",y:["รอดึง","รอดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
+  {table:"opitemrece(RX)",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
+  {table:"opitemrece(RX2)",y:["รอดึง","รอดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
+  {table:"opitemrece(LAB)",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
+  {table:"opitemrece(Xray)",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
+  {table:"opitemrece(OperIPD)",y:["กำลังดึง","รอดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
+  {table:"opitemrece(เวชภัณฑ์มิใช่ยา)",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
+  {table:"opitemrece(ค่าหัตถการ)",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
+  {table:"opitemrece(ทันตกรรม)",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
+  {table:"opitemrece(ค่า50บาท)",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
+  {table:"lab_head",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
+  {table:"lab_order",y:["ดึงแล้ว","กำลังดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
+  {table:"lab_order_service",y:["รอดึง","รอดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
+  {table:"xray_head",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
+  {table:"xray_report",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
+  {table:"patient_history_hpi",y:["ดึงแล้ว","ดึงแล้ว","กำลังดึง","รอดึง","รอดึง","รอดึง"]},
+  {table:"opdscreen_doctor_pe",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
+  {table:"rcpt_print",y:["รอดึง","รอดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
+  {table:"clinicmember",y:["รอดึง","รอดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
+];
+
+// Fallback data (used when Google Sheet is unavailable)
+const manageDataFallback = [
+  {table:"opduser / officer",field:"-",problem:"-",fix:"-",cmd:"-",m3:"-",m6:"-",m7:"-"},
+  {table:"patient (bloodgrp)",field:"bloodgrp",problem:"มีข้อมูล เก็บไม่ตรงตามตัวเลือกใน HOSxP XE",fix:"ใช้ Sheet แก้ข้อมูล",cmd:"ใช้ Sheet แก้ Blood Group",m3:"ทำแล้ว",m6:"ทำแล้ว",m7:"ทำแล้ว"},
+  {table:"pq_screen",field:"-",problem:"เป็นข้อมูลชื่อพยาบาลซักประวัติ แสดงในหน้าจอ EMR",fix:"ตัดข้อมูล 01-01-2556 ถึง 31-03-2561",cmd:"update pq_screen set staff = lower(staff)",m3:"ทำแล้ว",m6:"ทำแล้ว",m7:"ทำแล้ว"},
+  {table:"clinicmember",field:"-",problem:"Tools ไม่ได้นำเข้า เป็นประวัติทะเบียนโรคเรื้อรัง",fix:"Export แล้วเพิ่ม field clinicmember_id ผ่าน Navicat",cmd:"-",m3:"ทำแล้ว",m6:"ทำแล้ว",m7:"-"},
+  {table:"patient_history",field:"-",problem:"Tools ไม่ได้นำเข้า เป็นข้อมูลประวัติติดตัว",fix:"Transfer ผ่าน Navicat และปรับโครงสร้าง",cmd:"-",m3:"ทำแล้ว",m6:"-",m7:"-"},
+  {table:"opdscreen",field:"-",problem:"มีข้อมูลที่ vstdate is null ซึ่ง Tools ใช้ vstdate",fix:"ตัดข้อมูลและนำเข้าด้วย WHERE clause",cmd:"select * from opdscreen where vstdate is null",m3:"ทำแล้ว",m6:"ทำแล้ว",m7:"ทำแล้ว"},
+  {table:"opd_allergy",field:"allergy_relation_id",problem:"เก็บเป็นข้อความเดิมแต่ของใหม่เก็บเป็น id",fix:"Update ข้อมูลตามการแมป relation_level",cmd:"multiple update statements",m3:"ทำแล้ว",m6:"ทำแล้ว",m7:"ทำแล้ว"},
+  {table:"oapp",field:"oapp_status_id",problem:"nextdate เลื่อนไปตามวันขึ้นระบบ",fix:"ปรับสถานะ oapp_status_id",cmd:"select from oapp where nextdate criteria",m3:"รอตรวจสอบ",m6:"-",m7:"-"},
+  {table:"patient_pttype",field:"pttype",problem:"ปิดใช้งานในช่วงทำข้อมูลสิทธิ",fix:"Update ให้เปิดใช้งาน",cmd:"-",m3:"-",m6:"-",m7:"-"},
+  {table:"serial",field:"All Field",problem:"Tools ไม่ใช้ get_serialnumber ทำให้โปรแกรมค้าง",fix:"-",cmd:"-",m3:"-",m6:"-",m7:"-"},
+];
+
+let manageData = [...manageDataFallback];
+
+// Google Sheet Configuration
+const SHEET_ID = '1zO0YZntMAoJc6V9MXwh9Se32ituqkruy';
+const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
+
+function parseCSV(csv) {
+  const lines = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < csv.length; i++) {
+    const ch = csv[i];
+    if (ch === '"') {
+      if (inQuotes && csv[i+1] === '"') { current += '"'; i++; }
+      else { inQuotes = !inQuotes; }
+    } else if (ch === ',' && !inQuotes) {
+      lines.push(current); current = '';
+    } else if ((ch === '\n' || ch === '\r') && !inQuotes) {
+      if (current || lines.length > 0) { lines.push(current); current = ''; }
+      if (lines.length > 0) { return { fields: lines, rest: csv.slice(i + (csv[i+1] === '\n' ? 2 : 1)) }; }
+    } else {
+      current += ch;
+    }
+  }
+  if (current || lines.length > 0) lines.push(current);
+  return { fields: lines, rest: '' };
+}
+
+function parseAllCSV(csv) {
+  const rows = [];
+  let remaining = csv.trim();
+  while (remaining.length > 0) {
+    const result = parseCSV(remaining);
+    if (result.fields.length > 0) rows.push(result.fields);
+    if (result.rest === remaining) break;
+    remaining = result.rest;
+  }
+  return rows;
+}
+
+function mapSheetToManageData(rows) {
+  if (rows.length < 2) return null;
+  const header = rows[0].map(h => h.trim().toLowerCase());
+  const data = [];
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r[0] || r[0].trim() === '') continue;
+    const tableName = (r[0] || '').trim();
+    const field = (r[1] || '-').trim() || '-';
+    const problem = (r[2] || '-').trim() || '-';
+    const fix = (r[3] || '-').trim() || '-';
+    const cmd = (r[4] || '-').trim() || '-';
+    const m3 = (r[5] || '-').trim() || '-';
+    const m6 = (r[6] || '-').trim() || '-';
+    const m7 = (r[7] || '-').trim() || '-';
+    data.push({ table: tableName, field, problem, fix, cmd, m3, m6, m7 });
+  }
+  return data.length > 0 ? data : null;
+}
+
+function updateGSStatus(status, text) {
+  const dot = document.getElementById('gs-dot');
+  const statusText = document.getElementById('gs-status-text');
+  dot.className = 'gs-dot ' + status;
+  statusText.textContent = text;
+}
+
+function setRefreshLoading(loading) {
+  const btn = document.getElementById('btn-refresh');
+  const icon = document.getElementById('refresh-icon');
+  if (loading) {
+    btn.disabled = true;
+    icon.outerHTML = '<span class="spinner" id="refresh-icon"></span>';
+  } else {
+    btn.disabled = false;
+    const spinner = document.getElementById('refresh-icon');
+    if (spinner) spinner.outerHTML = '<span id="refresh-icon">↻</span>';
+  }
+}
+
+function fetchGoogleSheet() {
+  updateGSStatus('loading', 'กำลังดึงข้อมูล...');
+  setRefreshLoading(true);
+
+  fetch(SHEET_CSV_URL)
+    .then(res => {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.text();
+    })
+    .then(csv => {
+      const rows = parseAllCSV(csv);
+      const parsed = mapSheetToManageData(rows);
+      if (parsed) {
+        manageData = parsed;
+        renderManageTable();
+        const now = new Date();
+        const timeStr = now.toLocaleDateString('th-TH') + ' ' + now.toLocaleTimeString('th-TH');
+        document.getElementById('gs-last-update').textContent = 'อัปเดตล่าสุด: ' + timeStr;
+        updateGSStatus('online', 'เชื่อมต่อ Google Sheet สำเร็จ');
+      } else {
+        throw new Error('ไม่สามารถอ่านข้อมูลจาก Sheet ได้');
+      }
+    })
+    .catch(err => {
+      console.warn('Google Sheet fetch failed:', err);
+      updateGSStatus('offline', 'ไม่สามารถเชื่อมต่อ - ใช้ข้อมูลสำรอง');
+      manageData = [...manageDataFallback];
+      renderManageTable();
+    })
+    .finally(() => {
+      setRefreshLoading(false);
+    });
+}
+
+// Calculate totals
+const all = [...data.phase1,...data.phase2,...data.phase3];
+const done = all.filter(x=>x.status==='done').length;
+const doing = all.filter(x=>x.status==='doing').length;
+const wait = all.filter(x=>x.status==='wait').length;
+const total = all.length;
+const pct = Math.round(done/total*100);
+
+document.getElementById('kpi-done').textContent = done;
+document.getElementById('kpi-doing').textContent = doing;
+document.getElementById('kpi-doing').textContent = doing;
+document.getElementById('kpi-wait').textContent = wait;
+document.getElementById('kpi-total').textContent = total;
+document.getElementById('kpi-pct').textContent = pct + '%';
+
+// Progress bar
+const pctDone = (done/total*100).toFixed(1);
+const pctDoing = (doing/total*100).toFixed(1);
+const pctWait = (wait/total*100).toFixed(1);
+document.getElementById('progress-bar').innerHTML = `
+  <div class="progress-fill pf-done" style="width:${pctDone}%">${pctDone}%</div>
+  ${pctDoing>0?`<div class="progress-fill pf-doing" style="width:${pctDoing}%">${pctDoing}%</div>`:''}
+  <div class="progress-fill pf-wait" style="width:${pctWait}%">${pctWait}%</div>
+`;
+
+// Phase cards with donut
+function makeDonut(done,doing,wait,total,id){
+  const pDone=done/total*100, pDoing=doing/total*100;
+  const r=45, c=2*Math.PI*r;
+  const sDone=c*pDone/100, sDoing=c*pDoing/100, sWait=c*(100-pDone-pDoing)/100;
+  return `<svg width="120" height="120" viewBox="0 0 120 120">
+    <circle cx="60" cy="60" r="${r}" fill="none" stroke="#334155" stroke-width="10"/>
+    <circle cx="60" cy="60" r="${r}" fill="none" stroke="#22c55e" stroke-width="10"
+      stroke-dasharray="${sDone} ${c-sDone}" stroke-dashoffset="${c/4}" stroke-linecap="round"/>
+    ${sDoing>0?`<circle cx="60" cy="60" r="${r}" fill="none" stroke="#f97316" stroke-width="10"
+      stroke-dasharray="${sDoing} ${c-sDoing}" stroke-dashoffset="${c/4-sDone}"/>`:''}
+    <text x="60" y="56" text-anchor="middle" fill="#fff" font-size="22" font-weight="700">${Math.round(done/total*100)}%</text>
+    <text x="60" y="72" text-anchor="middle" fill="#94a3b8" font-size="11">${done}/${total}</text>
+  </svg>`;
+}
+
+const phases = [
+  {name:"เฟส 1",sub:"ข้อมูลพื้นฐาน (Master Data)",data:data.phase1},
+  {name:"เฟส 2",sub:"ข้อมูลผู้ป่วย (Patient Data)",data:data.phase2},
+  {name:"เฟส 3",sub:"ข้อมูลการรักษา (Transaction Data)",data:data.phase3}
+];
+
+let phaseHTML = '';
+phases.forEach((p,i)=>{
+  const d=p.data.filter(x=>x.status==='done').length;
+  const g=p.data.filter(x=>x.status==='doing').length;
+  const w=p.data.filter(x=>x.status==='wait').length;
+  const t=p.data.length;
+  phaseHTML+=`<div class="phase-card">
+    <h3>${p.name}</h3>
+    <div class="phase-sub">${p.sub}</div>
+    <div class="donut-wrap">${makeDonut(d,g,w,t,'p'+i)}</div>
+    <div class="phase-stats">
+      <div class="phase-stat"><span class="num" style="color:#22c55e">${d}</span>เสร็จ</div>
+      <div class="phase-stat"><span class="num" style="color:#f97316">${g}</span>กำลังทำ</div>
+      <div class="phase-stat"><span class="num" style="color:#94a3b8">${w}</span>รอ</div>
+    </div>
+  </div>`;
+});
+document.getElementById('phase-cards').innerHTML = phaseHTML;
+
+// Detail table
+let currentTab = 'all';
+function showTab(tab){
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderTable();
+}
+function badgeHTML(s){
+  if(s==='done') return '<span class="badge badge-done">ดำเนินการแล้ว</span>';
+  if(s==='doing') return '<span class="badge badge-doing">กำลังดำเนินการ</span>';
+  if(s==='wait') return '<span class="badge badge-wait">รอดำเนินการ</span>';
+  return '<span class="badge badge-na">-</span>';
+}
+function renderTable(){
+  let items = [];
+  if(currentTab==='all'||currentTab==='phase1') data.phase1.forEach(x=>items.push({...x,phase:'เฟส 1'}));
+  if(currentTab==='all'||currentTab==='phase2') data.phase2.forEach(x=>items.push({...x,phase:'เฟส 2'}));
+  if(currentTab==='all'||currentTab==='phase3') data.phase3.forEach(x=>items.push({...x,phase:'เฟส 3'}));
+  let html='';
+  items.forEach((x,i)=>{
+    html+=`<tr><td>${i+1}</td><td>${x.table}</td><td>${x.phase}</td><td>${badgeHTML(x.status)}</td></tr>`;
+  });
+  document.getElementById('detail-tbody').innerHTML=html;
+}
+renderTable();
+
+// Heatmap
+const years = ['2569','2568','2567','2566','2565','2564'];
+let hmHTML = '<div class="hm-header">ตาราง</div>';
+years.forEach(y=>hmHTML+=`<div class="hm-header">${y}</div>`);
+yearData.forEach(row=>{
+  hmHTML+=`<div class="hm-label">${row.table}</div>`;
+  row.y.forEach(v=>{
+    let cls='hm-wait', txt='รอ';
+    if(v==='ดึงแล้ว'){cls='hm-done';txt='✓';}
+    else if(v==='กำลังดึง'){cls='hm-doing';txt='⟳';}
+    else if(v==='0'){cls='hm-zero';txt='0';}
+    else{txt='—';}
+    hmHTML+=`<div class="hm-cell ${cls}">${txt}</div>`;
+  });
+});
+document.getElementById('heatmap').innerHTML=hmHTML;
+
+// Manage table
+function manageBadge(v) {
+  if (!v || v === '-') return '<span class="badge badge-na">-</span>';
+  const vl = v.trim();
+  if (vl === 'ทำแล้ว') return '<span class="badge badge-done">ทำแล้ว</span>';
+  if (vl.includes('รอ')) return '<span class="badge badge-doing">' + vl + '</span>';
+  return '<span class="badge badge-na">' + vl + '</span>';
+}
+
+function renderManageTable() {
+  let mHTML = '';
+  manageData.forEach((x, i) => {
+    const cmdHTML = x.cmd && x.cmd !== '-'
+      ? `<div class="cmd-code" title="${x.cmd}">${x.cmd}</div>` : '';
+    const problemHTML = x.problem && x.problem !== '-'
+      ? `<div><strong>ปัญหา:</strong> ${x.problem}</div>` : '';
+    const fixHTML = x.fix && x.fix !== '-'
+      ? `<div><strong>แก้ไข:</strong> ${x.fix}</div>` : '';
+    mHTML += `<tr>
+      <td>${i + 1}</td>
+      <td><strong>${x.table}</strong></td>
+      <td>${x.field || '-'}</td>
+      <td class="detail-cell">${problemHTML}${fixHTML}${cmdHTML}</td>
+      <td>${manageBadge(x.m3)}</td>
+      <td>${manageBadge(x.m6)}</td>
+      <td>${manageBadge(x.m7)}</td>
+    </tr>`;
+  });
+  document.getElementById('manage-tbody').innerHTML = mHTML;
+}
+renderManageTable();
+
+// Auto-fetch from Google Sheet on load
+fetchGoogleSheet();
+</script>
+</body>
+</html>
