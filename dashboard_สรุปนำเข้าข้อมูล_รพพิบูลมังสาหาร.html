@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard สรุปการนำเข้าข้อมูล Tool รพ.พิบูลมังสาหาร</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -107,6 +108,44 @@
   .cmd-code { background:#0f172a; padding:2px 6px; border-radius:4px; font-family:monospace; font-size:11px; color:#7dd3fc; display:inline-block; margin-top:2px; max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .cmd-code:hover { white-space:normal; word-break:break-all; }
 
+  /* Import section */
+  .import-bar { background:#1e293b; border-radius:12px; padding:16px 24px; margin-bottom:28px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; border:1px dashed #334155; }
+  .import-bar.drag-over { border-color:#3b82f6; background:#1e2a4a; }
+  .import-bar .import-title { font-size:14px; font-weight:600; color:#fff; white-space:nowrap; }
+  .import-bar .import-hint { font-size:12px; color:#64748b; }
+  .btn-import { background:linear-gradient(135deg,#3b82f6,#2563eb); border:none; color:#fff; padding:8px 20px; border-radius:8px; cursor:pointer; font-family:inherit; font-size:13px; font-weight:600; display:flex; align-items:center; gap:6px; transition:all 0.2s; }
+  .btn-import:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(59,130,246,0.4); }
+  .btn-export { background:#334155; border:1px solid #475569; color:#e2e8f0; padding:8px 20px; border-radius:8px; cursor:pointer; font-family:inherit; font-size:13px; font-weight:600; display:flex; align-items:center; gap:6px; transition:all 0.2s; }
+  .btn-export:hover { background:#475569; }
+  #file-input { display:none; }
+
+  /* Import modal */
+  .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; justify-content:center; align-items:center; }
+  .modal-overlay.show { display:flex; }
+  .modal { background:#1e293b; border-radius:16px; padding:28px; width:90%; max-width:800px; max-height:85vh; overflow-y:auto; border:1px solid #334155; }
+  .modal h3 { font-size:18px; color:#fff; margin-bottom:8px; }
+  .modal .modal-sub { font-size:13px; color:#94a3b8; margin-bottom:20px; }
+  .modal-close { float:right; background:none; border:none; color:#94a3b8; font-size:24px; cursor:pointer; line-height:1; }
+  .modal-close:hover { color:#fff; }
+  .sheet-tabs { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .sheet-tab { background:#334155; border:none; color:#94a3b8; padding:6px 14px; border-radius:6px; cursor:pointer; font-family:inherit; font-size:12px; }
+  .sheet-tab.active { background:#3b82f6; color:#fff; }
+  .preview-table { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:16px; }
+  .preview-table th { background:#334155; color:#94a3b8; padding:8px; text-align:left; font-weight:600; }
+  .preview-table td { padding:8px; border-bottom:1px solid #27272a; color:#e2e8f0; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .preview-table tr:hover td { background:#1a2744; }
+  .import-actions { display:flex; gap:12px; justify-content:flex-end; margin-top:16px; }
+  .btn-confirm { background:#22c55e; border:none; color:#fff; padding:10px 24px; border-radius:8px; cursor:pointer; font-family:inherit; font-size:14px; font-weight:600; }
+  .btn-confirm:hover { background:#16a34a; }
+  .btn-cancel { background:#475569; border:none; color:#e2e8f0; padding:10px 24px; border-radius:8px; cursor:pointer; font-family:inherit; font-size:14px; }
+  .btn-cancel:hover { background:#64748b; }
+  .import-summary { background:#0f172a; border-radius:8px; padding:12px 16px; margin-bottom:16px; font-size:13px; }
+  .import-summary .stat { display:inline-block; margin-right:16px; }
+  .import-summary .stat b { color:#3b82f6; }
+  .import-result { background:#0f172a; border-radius:8px; padding:16px; margin-top:12px; font-size:13px; }
+  .import-result.success { border-left:4px solid #22c55e; }
+  .import-result.error { border-left:4px solid #ef4444; }
+
   svg text { font-family:'Sarabun',sans-serif; }
 </style>
 </head>
@@ -118,6 +157,41 @@
 </div>
 
 <div class="container">
+
+<!-- Import / Export Bar -->
+<div class="import-bar" id="import-bar">
+  <span class="import-title">นำเข้า / ส่งออกข้อมูล</span>
+  <button class="btn-import" onclick="document.getElementById('file-input').click()">
+    <span>📥</span> นำเข้า Excel / CSV
+  </button>
+  <button class="btn-export" onclick="exportCurrentData()">
+    <span>📤</span> ส่งออก Excel
+  </button>
+  <span class="import-hint">รองรับ .xlsx, .xls, .csv &mdash; ลากไฟล์วางที่นี่ได้</span>
+  <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(event)">
+</div>
+
+<!-- Import Preview Modal -->
+<div class="modal-overlay" id="import-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeImportModal()">&times;</button>
+    <h3>ตรวจสอบข้อมูลก่อนนำเข้า</h3>
+    <div class="modal-sub" id="modal-filename"></div>
+    <div class="sheet-tabs" id="sheet-tabs"></div>
+    <div class="import-summary" id="import-summary"></div>
+    <div style="overflow-x:auto;">
+      <table class="preview-table">
+        <thead id="preview-head"></thead>
+        <tbody id="preview-body"></tbody>
+      </table>
+    </div>
+    <div id="import-result"></div>
+    <div class="import-actions">
+      <button class="btn-cancel" onclick="closeImportModal()">ยกเลิก</button>
+      <button class="btn-confirm" id="btn-apply" onclick="applyImport()">นำเข้าข้อมูล</button>
+    </div>
+  </div>
+</div>
 
 <!-- KPI Cards -->
 <div class="kpi-row">
@@ -602,6 +676,345 @@ renderManageTable();
 
 // Auto-fetch from Google Sheet on load
 fetchGoogleSheet();
+
+// ============================================================
+// IMPORT / EXPORT SYSTEM
+// ============================================================
+let importedWorkbook = null;
+let importedSheets = {};
+let currentPreviewSheet = null;
+
+// Drag & Drop
+const importBar = document.getElementById('import-bar');
+importBar.addEventListener('dragover', e => { e.preventDefault(); importBar.classList.add('drag-over'); });
+importBar.addEventListener('dragleave', () => importBar.classList.remove('drag-over'));
+importBar.addEventListener('drop', e => {
+  e.preventDefault();
+  importBar.classList.remove('drag-over');
+  if (e.dataTransfer.files.length > 0) processFile(e.dataTransfer.files[0]);
+});
+
+function handleFileSelect(e) {
+  if (e.target.files.length > 0) processFile(e.target.files[0]);
+  e.target.value = '';
+}
+
+function processFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!['xlsx','xls','csv'].includes(ext)) {
+    alert('รองรับเฉพาะไฟล์ .xlsx, .xls, .csv');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const dataArr = new Uint8Array(e.target.result);
+      importedWorkbook = XLSX.read(dataArr, { type: 'array' });
+      importedSheets = {};
+      importedWorkbook.SheetNames.forEach(name => {
+        const sheet = importedWorkbook.Sheets[name];
+        importedSheets[name] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      });
+      document.getElementById('modal-filename').textContent = 'ไฟล์: ' + file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+      buildSheetTabs();
+      document.getElementById('import-result').innerHTML = '';
+      document.getElementById('import-modal').classList.add('show');
+    } catch (err) {
+      alert('ไม่สามารถอ่านไฟล์ได้: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function buildSheetTabs() {
+  const tabs = document.getElementById('sheet-tabs');
+  const names = Object.keys(importedSheets);
+  tabs.innerHTML = names.map((name, i) =>
+    `<button class="sheet-tab ${i === 0 ? 'active' : ''}" onclick="previewSheet('${name}', this)">${name}</button>`
+  ).join('');
+  if (names.length > 0) previewSheet(names[0], tabs.querySelector('.sheet-tab'));
+}
+
+function previewSheet(name, btn) {
+  currentPreviewSheet = name;
+  document.querySelectorAll('.sheet-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const rows = importedSheets[name] || [];
+  if (rows.length === 0) {
+    document.getElementById('preview-head').innerHTML = '';
+    document.getElementById('preview-body').innerHTML = '<tr><td>ไม่มีข้อมูล</td></tr>';
+    document.getElementById('import-summary').innerHTML = '';
+    return;
+  }
+
+  const headers = rows[0];
+  const dataRows = rows.slice(1).filter(r => r.some(c => c !== ''));
+  const detected = detectDataType(headers);
+
+  document.getElementById('import-summary').innerHTML =
+    `<span class="stat">จำนวนคอลัมน์: <b>${headers.length}</b></span>` +
+    `<span class="stat">จำนวนแถวข้อมูล: <b>${dataRows.length}</b></span>` +
+    `<span class="stat">ประเภทที่ตรวจพบ: <b>${detected.label}</b></span>`;
+
+  document.getElementById('preview-head').innerHTML = '<tr>' +
+    headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+
+  const maxPreview = Math.min(dataRows.length, 20);
+  document.getElementById('preview-body').innerHTML = dataRows.slice(0, maxPreview).map(row =>
+    '<tr>' + headers.map((_, ci) => `<td title="${row[ci] || ''}">${row[ci] || ''}</td>`).join('') + '</tr>'
+  ).join('') + (dataRows.length > 20 ? `<tr><td colspan="${headers.length}" style="text-align:center;color:#64748b">... แสดง 20 จาก ${dataRows.length} แถว</td></tr>` : '');
+}
+
+function detectDataType(headers) {
+  const h = headers.map(x => String(x).trim().toLowerCase());
+  if (h.some(x => x.includes('สถานะ') || x === 'status') && h.some(x => x.includes('ตาราง') || x === 'table')) {
+    if (h.some(x => x.includes('เฟส') || x === 'phase')) return { type: 'phase_status', label: 'สถานะตาราง (Phase 1-3)' };
+    return { type: 'phase_status', label: 'สถานะตาราง (Phase 1-3)' };
+  }
+  if (h.some(x => x.includes('2569') || x.includes('2568') || x.includes('2567'))) return { type: 'year_data', label: 'สถานะรายปี (Heatmap)' };
+  if (h.some(x => x.includes('ปัญหา') || x.includes('การแก้ไข') || x.includes('คำสั่ง'))) return { type: 'manage', label: 'Manage Tools' };
+  return { type: 'unknown', label: 'ไม่สามารถระบุประเภทอัตโนมัติ — กรุณาตรวจสอบ' };
+}
+
+function closeImportModal() {
+  document.getElementById('import-modal').classList.remove('show');
+}
+
+function applyImport() {
+  const name = currentPreviewSheet;
+  const rows = importedSheets[name];
+  if (!rows || rows.length < 2) { showImportResult('error', 'ไม่มีข้อมูลให้นำเข้า'); return; }
+
+  const headers = rows[0];
+  const dataRows = rows.slice(1).filter(r => r.some(c => c !== ''));
+  const detected = detectDataType(headers);
+
+  try {
+    let count = 0;
+    if (detected.type === 'phase_status') {
+      count = importPhaseStatus(headers, dataRows);
+    } else if (detected.type === 'year_data') {
+      count = importYearData(headers, dataRows);
+    } else if (detected.type === 'manage') {
+      count = importManageData(headers, dataRows);
+    } else {
+      count = tryAutoImport(headers, dataRows);
+    }
+    refreshDashboard();
+    showImportResult('success', `นำเข้าสำเร็จ! อัปเดต ${count} รายการ`);
+  } catch (err) {
+    showImportResult('error', 'เกิดข้อผิดพลาด: ' + err.message);
+  }
+}
+
+function findCol(headers, ...keywords) {
+  const h = headers.map(x => String(x).trim().toLowerCase());
+  for (const kw of keywords) {
+    const idx = h.findIndex(x => x.includes(kw));
+    if (idx >= 0) return idx;
+  }
+  return -1;
+}
+
+function normalizeStatus(val) {
+  const v = String(val).trim().toLowerCase();
+  if (['done','ดำเนินการแล้ว','เสร็จ','เสร็จแล้ว','ดึงแล้ว','ทำแล้ว'].some(k => v.includes(k))) return 'done';
+  if (['doing','กำลัง','กำลังดำเนินการ','กำลังดึง'].some(k => v.includes(k))) return 'doing';
+  if (['wait','รอ','รอดำเนินการ','รอดึง'].some(k => v.includes(k))) return 'wait';
+  return v || 'wait';
+}
+
+function importPhaseStatus(headers, rows) {
+  const colTable = findCol(headers, 'ตาราง', 'table', 'name');
+  const colStatus = findCol(headers, 'สถานะ', 'status');
+  const colPhase = findCol(headers, 'เฟส', 'phase');
+  if (colTable < 0 || colStatus < 0) throw new Error('ไม่พบคอลัมน์ "ตาราง" หรือ "สถานะ"');
+
+  let count = 0;
+  rows.forEach(row => {
+    const tableName = String(row[colTable] || '').trim();
+    const status = normalizeStatus(row[colStatus]);
+    if (!tableName) return;
+
+    let phaseKey = null;
+    if (colPhase >= 0) {
+      const pv = String(row[colPhase] || '').trim();
+      if (pv.includes('1')) phaseKey = 'phase1';
+      else if (pv.includes('2')) phaseKey = 'phase2';
+      else if (pv.includes('3')) phaseKey = 'phase3';
+    }
+
+    const phases = phaseKey ? [phaseKey] : ['phase1', 'phase2', 'phase3'];
+    phases.forEach(pk => {
+      const item = data[pk].find(x => x.table.toLowerCase() === tableName.toLowerCase());
+      if (item) { item.status = status; count++; }
+    });
+  });
+  return count;
+}
+
+function importYearData(headers, rows) {
+  const colTable = findCol(headers, 'ตาราง', 'table', 'name');
+  if (colTable < 0) throw new Error('ไม่พบคอลัมน์ "ตาราง"');
+
+  const yearCols = [];
+  headers.forEach((h, i) => {
+    const hs = String(h).trim();
+    if (/25\d{2}/.test(hs)) yearCols.push({ idx: i, year: hs });
+  });
+  if (yearCols.length === 0) throw new Error('ไม่พบคอลัมน์ปี (เช่น 2569, 2568)');
+
+  let count = 0;
+  rows.forEach(row => {
+    const tableName = String(row[colTable] || '').trim();
+    if (!tableName) return;
+    const existing = yearData.find(x => x.table.toLowerCase() === tableName.toLowerCase());
+    if (existing) {
+      const targetYears = ['2569','2568','2567','2566','2565','2564'];
+      yearCols.forEach(yc => {
+        const yi = targetYears.indexOf(yc.year);
+        if (yi >= 0) {
+          const val = String(row[yc.idx] || '').trim();
+          existing.y[yi] = val || 'รอดึง';
+        }
+      });
+      count++;
+    }
+  });
+  return count;
+}
+
+function importManageData(headers, rows) {
+  const colTable = findCol(headers, 'ตาราง', 'table');
+  if (colTable < 0) throw new Error('ไม่พบคอลัมน์ "ตาราง"');
+
+  const colField = findCol(headers, 'ฟิลด์', 'field');
+  const colProblem = findCol(headers, 'ปัญหา', 'problem');
+  const colFix = findCol(headers, 'การแก้ไข', 'fix');
+  const colCmd = findCol(headers, 'คำสั่ง', 'command', 'cmd', 'sql');
+  const colM3 = findCol(headers, 'ตัดเดือน 3', 'เดือน 3', 'm3');
+  const colM6 = findCol(headers, 'ตัดเดือน 6', 'เดือน 6', 'm6');
+  const colM7 = findCol(headers, 'ตัดเดือน 7', 'เดือน 7', 'm7');
+
+  const newData = [];
+  rows.forEach(row => {
+    const tableName = String(row[colTable] || '').trim();
+    if (!tableName) return;
+    newData.push({
+      table: tableName,
+      field: colField >= 0 ? String(row[colField] || '-').trim() || '-' : '-',
+      problem: colProblem >= 0 ? String(row[colProblem] || '-').trim() || '-' : '-',
+      fix: colFix >= 0 ? String(row[colFix] || '-').trim() || '-' : '-',
+      cmd: colCmd >= 0 ? String(row[colCmd] || '-').trim() || '-' : '-',
+      m3: colM3 >= 0 ? String(row[colM3] || '-').trim() || '-' : '-',
+      m6: colM6 >= 0 ? String(row[colM6] || '-').trim() || '-' : '-',
+      m7: colM7 >= 0 ? String(row[colM7] || '-').trim() || '-' : '-',
+    });
+  });
+  manageData = newData;
+  return newData.length;
+}
+
+function tryAutoImport(headers, rows) {
+  const colTable = findCol(headers, 'ตาราง', 'table', 'name');
+  const colStatus = findCol(headers, 'สถานะ', 'status');
+  if (colTable >= 0 && colStatus >= 0) return importPhaseStatus(headers, rows);
+  throw new Error('ไม่สามารถระบุรูปแบบข้อมูลได้ กรุณาตรวจสอบหัวคอลัมน์ให้มี "ตาราง" และ "สถานะ"');
+}
+
+function refreshDashboard() {
+  const all = [...data.phase1, ...data.phase2, ...data.phase3];
+  const d = all.filter(x => x.status === 'done').length;
+  const g = all.filter(x => x.status === 'doing').length;
+  const w = all.filter(x => x.status === 'wait').length;
+  const t = all.length;
+  const p = Math.round(d / t * 100);
+
+  document.getElementById('kpi-done').textContent = d;
+  document.getElementById('kpi-doing').textContent = g;
+  document.getElementById('kpi-wait').textContent = w;
+  document.getElementById('kpi-total').textContent = t;
+  document.getElementById('kpi-pct').textContent = p + '%';
+
+  const pd = (d/t*100).toFixed(1), pg = (g/t*100).toFixed(1), pw = (w/t*100).toFixed(1);
+  document.getElementById('progress-bar').innerHTML =
+    `<div class="progress-fill pf-done" style="width:${pd}%">${pd}%</div>` +
+    (pg > 0 ? `<div class="progress-fill pf-doing" style="width:${pg}%">${pg}%</div>` : '') +
+    `<div class="progress-fill pf-wait" style="width:${pw}%">${pw}%</div>`;
+
+  let phHTML = '';
+  phases.forEach((ph, i) => {
+    const dd = ph.data.filter(x => x.status === 'done').length;
+    const gg = ph.data.filter(x => x.status === 'doing').length;
+    const ww = ph.data.filter(x => x.status === 'wait').length;
+    const tt = ph.data.length;
+    phHTML += `<div class="phase-card"><h3>${ph.name}</h3><div class="phase-sub">${ph.sub}</div>
+      <div class="donut-wrap">${makeDonut(dd,gg,ww,tt,'p'+i)}</div>
+      <div class="phase-stats">
+        <div class="phase-stat"><span class="num" style="color:#22c55e">${dd}</span>เสร็จ</div>
+        <div class="phase-stat"><span class="num" style="color:#f97316">${gg}</span>กำลังทำ</div>
+        <div class="phase-stat"><span class="num" style="color:#94a3b8">${ww}</span>รอ</div>
+      </div></div>`;
+  });
+  document.getElementById('phase-cards').innerHTML = phHTML;
+  renderTable();
+
+  const yrs = ['2569','2568','2567','2566','2565','2564'];
+  let hm = '<div class="hm-header">ตาราง</div>';
+  yrs.forEach(y => hm += `<div class="hm-header">${y}</div>`);
+  yearData.forEach(row => {
+    hm += `<div class="hm-label">${row.table}</div>`;
+    row.y.forEach(v => {
+      let cls = 'hm-wait', txt = 'รอ';
+      if (v === 'ดึงแล้ว') { cls = 'hm-done'; txt = '✓'; }
+      else if (v === 'กำลังดึง') { cls = 'hm-doing'; txt = '⟳'; }
+      else if (v === '0') { cls = 'hm-zero'; txt = '0'; }
+      else { txt = '—'; }
+      hm += `<div class="hm-cell ${cls}">${txt}</div>`;
+    });
+  });
+  document.getElementById('heatmap').innerHTML = hm;
+  renderManageTable();
+}
+
+function showImportResult(type, msg) {
+  document.getElementById('import-result').innerHTML =
+    `<div class="import-result ${type}">${type === 'success' ? '✅' : '❌'} ${msg}</div>`;
+}
+
+// ============================================================
+// EXPORT SYSTEM - ส่งออกข้อมูลปัจจุบันเป็น Excel
+// ============================================================
+function exportCurrentData() {
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1: Phase Status
+  const phaseRows = [['#', 'ตาราง', 'เฟส', 'สถานะ']];
+  let idx = 1;
+  const statusMap = { done: 'ดำเนินการแล้ว', doing: 'กำลังดำเนินการ', wait: 'รอดำเนินการ' };
+  [{ key: 'phase1', label: 'เฟส 1' }, { key: 'phase2', label: 'เฟส 2' }, { key: 'phase3', label: 'เฟส 3' }].forEach(p => {
+    data[p.key].forEach(item => {
+      phaseRows.push([idx++, item.table, p.label, statusMap[item.status] || item.status]);
+    });
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(phaseRows), 'สถานะตาราง');
+
+  // Sheet 2: Year Data
+  const yearHeaders = ['ตาราง', '2569', '2568', '2567', '2566', '2565', '2564'];
+  const yearRows = [yearHeaders];
+  yearData.forEach(row => yearRows.push([row.table, ...row.y]));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(yearRows), 'สถานะรายปี');
+
+  // Sheet 3: Manage Tools
+  const manageHeaders = ['ตาราง', 'ฟิลด์', 'ปัญหา', 'การแก้ไข', 'คำสั่ง', 'ตัดเดือน 3', 'ตัดเดือน 6', 'ตัดเดือน 7'];
+  const manageRows = [manageHeaders];
+  manageData.forEach(x => manageRows.push([x.table, x.field, x.problem, x.fix, x.cmd, x.m3, x.m6, x.m7]));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(manageRows), 'Manage Tools');
+
+  XLSX.writeFile(wb, 'Dashboard_รพพิบูลมังสาหาร_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+}
 </script>
 </body>
 </html>
