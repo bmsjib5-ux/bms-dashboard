@@ -153,7 +153,7 @@
 
 <div class="header">
   <h1>Dashboard สรุปการนำเข้าข้อมูล Tool</h1>
-  <p>โรงพยาบาลพิบูลมังสาหาร &mdash; อัปเดตล่าสุด: มีนาคม 2569</p>
+  <p>โรงพยาบาลพิบูลมังสาหาร &mdash; อัปเดตล่าสุด: 29 มีนาคม 2569</p>
 </div>
 
 <div class="container">
@@ -317,7 +317,7 @@ const data = {
     {table:"nondrugitems(xray)",status:"done"},
     {table:"nondrugitems(เครื่องมือแพทย์)",status:"done"},
     {table:"nondrugitems(cdt2)",status:"done"},
-    {table:"lab_items_group",status:"wait"},
+    {table:"lab_items_group",status:"done"},
     {table:"lab_items",status:"done"},
     {table:"lab_items_sub_group",status:"done"},
     {table:"xray_items",status:"done"},
@@ -341,7 +341,7 @@ const data = {
     {table:"opdscreen",status:"done"},
     {table:"opdscreen_cc_list",status:"done"},
     {table:"opdscreen_cc_list(ทันตกรรม)",status:"done"},
-    {table:"oapp",status:"done"},
+    {table:"oapp",status:"wait"},
     {table:"ipt",status:"done"},
     {table:"iptdiag",status:"done"},
     {table:"ipt_pttype",status:"done"},
@@ -350,23 +350,26 @@ const data = {
     {table:"ipt_order_no(Xray)",status:"wait"},
     {table:"ipt_order_no(OperIPD)",status:"wait"},
     {table:"opitemrece(RX)",status:"done"},
-    {table:"opitemrece(RX2)",status:"done"},
+    {table:"opitemrece(RX2)",status:"wait"},
     {table:"opitemrece(LAB)",status:"done"},
     {table:"opitemrece(Xray)",status:"done"},
-    {table:"opitemrece(OperIPD)",status:"wait"},
+    {table:"opitemrece(OperIPD)",status:"doing"},
     {table:"opitemrece(เวชภัณฑ์มิใช่ยา)",status:"done"},
     {table:"opitemrece(ค่าหัตถการ)",status:"done"},
     {table:"opitemrece(ทันตกรรม)",status:"done"},
     {table:"opitemrece(ค่า50บาท)",status:"done"},
     {table:"lab_head",status:"done"},
-    {table:"lab_order",status:"done"},
+    {table:"lab_order",status:"doing"},
     {table:"lab_order_service",status:"wait"},
     {table:"xray_head",status:"done"},
     {table:"xray_report",status:"done"},
-    {table:"patient_history_hpi",status:"done"},
+    {table:"patient_history_hpi",status:"doing"},
     {table:"opdscreen_doctor_pe",status:"done"},
     {table:"rcpt_print",status:"wait"},
     {table:"clinicmember",status:"wait"},
+    {table:"lab_app_head",status:"wait"},
+    {table:"lab_app_order",status:"wait"},
+    {table:"lab_app_order_service",status:"wait"},
   ]
 };
 
@@ -376,6 +379,7 @@ const yearData = [
   {table:"ovstdiag",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
   {table:"opdscreen",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
   {table:"opdscreen_cc_list",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
+  {table:"opdscreen_cc_list(ทันตกรรม)",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
   {table:"oapp",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","รอดึง","รอดึง","รอดึง"]},
   {table:"ipt",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
   {table:"iptdiag",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
@@ -388,34 +392,42 @@ const yearData = [
   {table:"opitemrece(RX2)",y:["รอดึง","รอดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
   {table:"opitemrece(LAB)",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
   {table:"opitemrece(Xray)",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
-  {table:"opitemrece(OperIPD)",y:["กำลังดึง","รอดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
+  {table:"opitemrece(OperIPD)",y:["ดึงแล้ว","กำลังดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
   {table:"opitemrece(เวชภัณฑ์มิใช่ยา)",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
   {table:"opitemrece(ค่าหัตถการ)",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
   {table:"opitemrece(ทันตกรรม)",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
   {table:"opitemrece(ค่า50บาท)",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
   {table:"lab_head",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
-  {table:"lab_order",y:["ดึงแล้ว","กำลังดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
-  {table:"lab_order_service",y:["รอดึง","รอดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
+  {table:"lab_order",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","รอดึง","รอดึง","รอดึง"]},
+  {table:"lab_order_service",y:["ดึงแล้ว","รอดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
   {table:"xray_head",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
   {table:"xray_report",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
-  {table:"patient_history_hpi",y:["ดึงแล้ว","ดึงแล้ว","กำลังดึง","รอดึง","รอดึง","รอดึง"]},
+  {table:"patient_history_hpi",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
   {table:"opdscreen_doctor_pe",y:["ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว","ดึงแล้ว"]},
   {table:"rcpt_print",y:["รอดึง","รอดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
   {table:"clinicmember",y:["รอดึง","รอดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
+  {table:"lab_app_head",y:["รอดึง","รอดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
+  {table:"lab_app_order",y:["รอดึง","รอดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
+  {table:"lab_app_order_service",y:["รอดึง","รอดึง","รอดึง","รอดึง","รอดึง","รอดึง"]},
 ];
 
 // Fallback data (used when Google Sheet is unavailable)
 const manageDataFallback = [
-  {table:"opduser / officer",field:"-",problem:"-",fix:"-",cmd:"-",m3:"-",m6:"-",m7:"-"},
-  {table:"patient (bloodgrp)",field:"bloodgrp",problem:"มีข้อมูล เก็บไม่ตรงตามตัวเลือกใน HOSxP XE",fix:"ใช้ Sheet แก้ข้อมูล",cmd:"ใช้ Sheet แก้ Blood Group",m3:"ทำแล้ว",m6:"ทำแล้ว",m7:"ทำแล้ว"},
-  {table:"pq_screen",field:"-",problem:"เป็นข้อมูลชื่อพยาบาลซักประวัติ แสดงในหน้าจอ EMR",fix:"ตัดข้อมูล 01-01-2556 ถึง 31-03-2561",cmd:"update pq_screen set staff = lower(staff)",m3:"ทำแล้ว",m6:"ทำแล้ว",m7:"ทำแล้ว"},
-  {table:"clinicmember",field:"-",problem:"Tools ไม่ได้นำเข้า เป็นประวัติทะเบียนโรคเรื้อรัง",fix:"Export แล้วเพิ่ม field clinicmember_id ผ่าน Navicat",cmd:"-",m3:"ทำแล้ว",m6:"ทำแล้ว",m7:"-"},
-  {table:"patient_history",field:"-",problem:"Tools ไม่ได้นำเข้า เป็นข้อมูลประวัติติดตัว",fix:"Transfer ผ่าน Navicat และปรับโครงสร้าง",cmd:"-",m3:"ทำแล้ว",m6:"-",m7:"-"},
-  {table:"opdscreen",field:"-",problem:"มีข้อมูลที่ vstdate is null ซึ่ง Tools ใช้ vstdate",fix:"ตัดข้อมูลและนำเข้าด้วย WHERE clause",cmd:"select * from opdscreen where vstdate is null",m3:"ทำแล้ว",m6:"ทำแล้ว",m7:"ทำแล้ว"},
-  {table:"opd_allergy",field:"allergy_relation_id",problem:"เก็บเป็นข้อความเดิมแต่ของใหม่เก็บเป็น id",fix:"Update ข้อมูลตามการแมป relation_level",cmd:"multiple update statements",m3:"ทำแล้ว",m6:"ทำแล้ว",m7:"ทำแล้ว"},
-  {table:"oapp",field:"oapp_status_id",problem:"nextdate เลื่อนไปตามวันขึ้นระบบ",fix:"ปรับสถานะ oapp_status_id",cmd:"select from oapp where nextdate criteria",m3:"รอตรวจสอบ",m6:"-",m7:"-"},
-  {table:"patient_pttype",field:"pttype",problem:"ปิดใช้งานในช่วงทำข้อมูลสิทธิ",fix:"Update ให้เปิดใช้งาน",cmd:"-",m3:"-",m6:"-",m7:"-"},
-  {table:"serial",field:"All Field",problem:"Tools ไม่ใช้ get_serialnumber ทำให้โปรแกรมค้าง",fix:"-",cmd:"-",m3:"-",m6:"-",m7:"-"},
+  {table:"opduser",field:"loginname",problem:"ข้อมูลเดิมมีทั้งตัวเล็กและตัวใหญ่ ทำให้ Map เรียกใช้งานไม่ได้",fix:"ประสาน IT แล้วใช้คำสั่ง update ก่อนดึง Tools",cmd:"update opduser set loginname = lower(loginname)",m3:"-",m6:"-",m7:"-"},
+  {table:"officer",field:"officer_login_name",problem:"ข้อมูลเดิมมีทั้งตัวเล็กและตัวใหญ่ ทำให้ Map เรียกใช้งานไม่ได้",fix:"ประสาน IT แล้วใช้คำสั่ง update ก่อนดึง Tools",cmd:"update officer set officer_login_name = lower(officer_login_name)",m3:"-",m6:"-",m7:"-"},
+  {table:"patient",field:"bloodgrp",problem:"มีข้อมูล เก็บไม่ตรงตามตัวเลือกใน HOSxP XE",fix:"Group เพื่อดูข้อมูล แล้ว update ใส่ในตาราง",cmd:"ใช้ Sheet แก้ Blood Group",m3:"ทำแล้ว",m6:"ทำแล้ว",m7:"ทำแล้ว"},
+  {table:"patient_relation_address",field:"-",problem:"ชื่อผู้ติดต่อ กับที่อยู่ ออกมาแสดงคนละที่กัน",fix:"ตกลงกันว่าจะให้ไว้ที่ช่องไหน type เป็นอะไร แล้ว update ในตาราง",cmd:"update patient set ec_fname, ec_lname",m3:"-",m6:"-",m7:"-"},
+  {table:"pq_screen",field:"-",problem:"เป็นข้อมูลชื่อพยาบาลซักประวัติ แสดงในหน้าจอ EMR",fix:"คิวรี่ออกมาเป็น Access แล้วตัดข้อมูล 01-01-2556 ถึง 31-03-2561 หลังนำเข้าให้ Lower Field: staff",cmd:"update pq_screen set staff = lower(staff)",m3:"ทำแล้ว",m6:"ทำแล้ว",m7:"ทำแล้ว"},
+  {table:"clinicmember",field:"-",problem:"Tools ไม่ได้นำเข้า เป็นประวัติทะเบียนโรคเรื้อรังของคนไข้",fix:"Export Table จากฐานเดิมแบบ Access เพิ่ม Field clinicmember_id แล้วนำเข้าผ่าน Navicat (ทำวันขึ้นระบบครั้งเดียว)",cmd:"-",m3:"ทำแล้ว",m6:"ทำแล้ว",m7:"-"},
+  {table:"patient_history",field:"-",problem:"Tools ไม่ได้นำเข้า เป็นข้อมูลประวัติติดตัวคนไข้",fix:"Transfer ผ่าน Navicat แล้ว Upgrade Structure 1 ครั้ง",cmd:"-",m3:"ทำแล้ว",m6:"-",m7:"-"},
+  {table:"opdscreen",field:"-",problem:"มีข้อมูลที่ vstdate is null ซึ่ง Tools ใช้ vstdate จาก opdscreen ตอนที่หยิบไป where",fix:"คิวรี่ Export Excel แล้วเอาเข้าเอง นำเข้าไปแล้ว vn 58-6103",cmd:"select * from opdscreen where vstdate is null",m3:"ทำแล้ว",m6:"ทำแล้ว",m7:"ทำแล้ว"},
+  {table:"opd_allergy",field:"allergy_relation_id",problem:"ของเดิมเก็บเป็นข้อความใน relation_level แต่ของใหม่เก็บเป็น id",fix:"หลังนำเข้าใช้คำสั่ง Update ข้อมูลตาม relation_level",cmd:"update opd_allergy set allergy_relation_id = ... where relation_level = ...",m3:"ทำแล้ว",m6:"ทำแล้ว",m7:"ทำแล้ว"},
+  {table:"oapp",field:"oapp_status_id",problem:"nextdate จะเลื่อนไปเรื่อยๆตามวันขึ้นระบบ",fix:"เขียนคำสั่งตรวจสอบแล้วปรับ oapp_status_id ให้เป็น 1 สำหรับ nextdate ที่ยังไม่ถึง",cmd:"select * from oapp where nextdate >= '2017-10-01' and nextdate <= current_date",m3:"รอดูอีกที",m6:"-",m7:"-"},
+  {table:"oapp",field:"clinic",problem:"ของเดิมไม่ได้ลง แต่มีเก็บ depcode ไว้",fix:"เอา depcode มาหาว่าตรงกับ clinic ไหนแล้วใช้คำสั่ง update",cmd:"-",m3:"-",m6:"-",m7:"-"},
+  {table:"patient_pttype",field:"pttype",problem:"มีการปิดใช้งานในช่วงทำข้อมูลสิทธิการรักษาในเวอร์ชั่นใหม่",fix:"เขียนคำสั่ง Update ให้เปิดใช้งาน ทำทุกครั้งในฐานทดสอบ ฐานจริงทำวันขึ้นระบบครั้งเดียว",cmd:"-",m3:"-",m6:"-",m7:"-"},
+  {table:"serial",field:"All Field",problem:"Tools บางตารางดึงแล้วไม่ได้ใช้ get_serialnumber ทำให้ serial ไม่ update value โปรแกรมค้าง",fix:"-",cmd:"-",m3:"-",m6:"-",m7:"-"},
+  {table:"user_var",field:"All Field",problem:"HOSxP มีการกำหนดค่าใน user_var เพิ่มเติม",fix:"ต้องเขียนคำสั่ง insert และ update check box",cmd:"-",m3:"-",m6:"-",m7:"-"},
+  {table:"oapp_grant",field:"All Field",problem:"ชื่อแพทย์ที่นัดในหน้าทะเบียนจะไม่ขึ้น",fix:"ต้องเขียนคำสั่ง insert และ update เข้าในตาราง",cmd:"-",m3:"-",m6:"-",m7:"-"},
 ];
 
 let manageData = [...manageDataFallback];
